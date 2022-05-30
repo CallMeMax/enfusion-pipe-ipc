@@ -19,6 +19,20 @@ Then the `L1960_PipeIPCGameComponent` and the `SCR_HintManagerComponent` must be
 3 seconds after the game start, a query to the SQL DB will be performed, asking for the current time.
 The result will be visible in a hint.
  
+## Customizations options
+After adding the `L1960_PipeIPCGameComponent` to the Game Mode in the World Editor, one can customize the name of the `Pipe In` and `Pipe Out`. These pipes must be the same as the used by the python script - otherwise the programs cannot communicate. 
+
+## Troubleshooting
+If the pipes are configured correctly, but the game cannot establish a connection, there can be a problem with windows pipes. 
+Especially, this problem might occur only in the published project (downloaded from the Workshop), but not in the developing environment of the World Editor.
+There are two possible ways to fix this (exemplary for `Pipe In`):
+1. Use `\\.\pipe\ArmaIn` instead of `\\127.0.0.1\pipe\ArmaIn`
+2. Create a link to the pipe in the profile folder 
+
+       $ mklink ArmaIn.pipe \\127.0.0.1\pipe\ArmaIn
+ 
+    and use `$profile:ArmaIn.pipe` as the `Pipe In` parameter.
+ 
 ## Contributing
 Any help or ideas for improvement are very welcome. 
 Please feel free to point out any errors in the code or improvements of the code in general.
