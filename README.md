@@ -1,15 +1,15 @@
 # ARMA Reforger Interprocess Communication 
-This project offers a proof of concept implementation of an IPC class writting from ARMA Reforger Workbench (Enfusion Engine) using the FileIO class tigether with windows named pipes.
-Additionally a python programm is supplied as a backend to communicate with. 
+This project offers a proof of concept implementation of an IPC class writing from ARMA Reforger Workbench (Enfusion Engine) using the FileIO class together with windows named pipes.
+Additionally a python program is supplied as a back-end to communicate with. 
 It enables the communication with a SQL DB as an example use case.
-This implementation is not suitable for any production envirnments, because of performance and stability issues.
+This implementation is not suitable for any production environment, because of performance and stability issues.
 
 ## Requirements
 The python program requires Python 3 and the `pywin32` package for the interaction with the windows named pipes and the `mysql-connector-python` package for the communication with the SQL server.
-The ARMA Reforger code can be imported into any existing profject without any further requirements.
+The ARMA Reforger code can be imported into any existing project without any further requirements.
 
 ## Getting started
-To use this code, first the connection and login informtion in the python file have to be inserted. these cna be found in the `process_request` function in the `SQLServer` class.
+To use this code, first the connection and login information in the python file have to be inserted. These can be found in the `process_request` function in the `SQLServer` class.
 Then the python service has to be started by simply running the python file via the command line
     
     $ python L1960_pipeIPC.py
