@@ -1,11 +1,23 @@
 class L1960_SQLQuery : array<ref L1960_GenericJson>
 {
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	//--- Public functions
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	/*!
+	Parses the SQL query result into a L1960_PipeIPCJson object.
+	\param result Json object containing 3 string lists: data, names, types. Where names and types must be the same length and data must be a multiple.
+	*/
 	void L1960_SQLQuery(string result)
 	{
 		L1960_PipeIPCJson jas = new L1960_PipeIPCJson(this);		
 		jas.ExpandFromRAW(result);
 	}
 	
+	/*!
+	Generates a string containing all data form the SQL query.
+	\return string representation
+	*/
 	string AsString()
 	{
 		string s = "";
@@ -19,12 +31,16 @@ class L1960_SQLQuery : array<ref L1960_GenericJson>
 
 class L1960_PipeIPCJson : JsonApiStruct
 {
-	protected ref array<string> data;
-	protected ref array<string> names;
-	protected ref array<string> types;
+	protected ref array<string> data;   // data conntent of the SQL query
+	protected ref array<string> names;  // names of the SQL columns 
+	protected ref array<string> types;  // types of the SQL columns 
 	
-	array<ref L1960_GenericJson> content;
+	array<ref L1960_GenericJson> content;  // SQL query parsed as rows of L1960_GenericJson
 
+	/*!
+	Called after successful parsing of the Json
+	\param errorCode
+	*/
 	override void OnSuccess( int errorCode )
 	{
 		PrintFormat("Success %1", errorCode);
@@ -67,7 +83,10 @@ class L1960_PipeIPCJson : JsonApiStruct
 		}
 	}
 		
-	
+	/*!	
+	data, names and types are parse automatically from the Json data.
+	\param c the L1960_GenericJson list for the output
+	*/
 	void L1960_PipeIPCJson(array<ref L1960_GenericJson> c)
 	{
 		RegV("data");
@@ -78,18 +97,28 @@ class L1960_PipeIPCJson : JsonApiStruct
 	}	
 };
 
+
+/*!
+Type of Json element. Used by L1960_GenericJson.
+*/
 enum L1960_Types
-{
+{	
 	TYPE_BOOL,
 	TYPE_INT,
 	TYPE_FLOAT,
 	TYPE_STRING,
-	TYPE_DATE,
+	TYPE_DATE,  // SQL Timestamp containing Year, Month, day, hour, minute, second
 };
 
+/*!
+SQL Timestamp containing Year, Month, day, hour, minute, second
+*/
 class L1960_Datetime : array<int>
 {
-	
+	/*!	
+	List of Year, Month, day, hour, minute, second in this order.
+	\param list string of 6 integers separated by `,`
+	*/
 	void L1960_Datetime(string list)
 	{
 		array<string> tmp = {};
@@ -98,6 +127,10 @@ class L1960_Datetime : array<int>
 			Insert(s.ToInt());
 	}
 	
+	/*!	
+	Parses the data of this class as string.
+	\return string representation
+	*/
 	string AsString()
 	{
 		string data = "";
@@ -109,6 +142,10 @@ class L1960_Datetime : array<int>
 			return "";
 	}	
 	
+	/*!	
+	Parses the data of this class as a more beautiful string.
+	\return string representation
+	*/
 	string Format()
 	{
 		if (Count() == 6)
@@ -117,6 +154,10 @@ class L1960_Datetime : array<int>
 			return AsString();
 	}
 	
+	/*!	
+	Compares two objects of type L1960_Datetime
+	\return true if equal false otherwise
+	*/
 	bool Equals(L1960_Datetime b)
 	{
 		if (Count() != b.Count())
@@ -128,11 +169,18 @@ class L1960_Datetime : array<int>
 	}
 };
 
+/*!
+L1960_GenericJson represents a Json object which can contain a varying number of atributes of a type defined by L1960_Types. 
+Specifically no lists are possible. 
+*/
 class L1960_GenericJson
 {
 	protected ref map<string, ref Tuple2<ref L1960_Types, string>> content = new map<string, ref Tuple2<ref L1960_Types, string>>();
 	
-	
+	/*!	
+	Parses the data of this class as string.
+	\return string representation
+	*/
 	string AsString()
 	{
 		string s = "";
@@ -147,44 +195,82 @@ class L1960_GenericJson
 		else
 			return "";
 	}
+	
+	/*!	
+	Return the number of Json atributes of the Json object.
+	\return int number of attributes
+	*/
 	int Count()
 	{
 		return content.Count();
 	}
+	
+	/*!	
+	Return wether this objects contains any attributes.
+	\return true if empty false otherwise
+	*/	
 	bool IsEmpty()
 	{
 		return content.IsEmpty();
 	}
+
+	/*!	
+	Removes all data from the class.
+	*/		
 	void Clear()
 	{
 		content.Clear();
 	}
 	
-	
+	/*!	
+	Returns a float value of the corresponding key attribute.
+	\param key name of the Json attribute
+	\return float value of the attriubte, 0 if it is not a float
+	*/	
 	float GetFloat(string key)
 	{
 		if (content.Get(key).param1 == L1960_Types.TYPE_FLOAT)
 			return content.Get(key).param2.ToFloat();
 		return 0.0;
 	}
+	/*!	
+	Returns an int value of the corresponding key attribute.
+	\param key name of the Json attribute
+	\return int value of the attriubte, 0 if it is not an int
+	*/	
 	int GetInt(string key)
 	{
 		if (content.Get(key).param1 == L1960_Types.TYPE_INT)
 			return content.Get(key).param2.ToInt();
 		return 0;
 	}
+	/*!	
+	Returns a string value of the corresponding key attribute.
+	\param key name of the Json attribute
+	\return string value of the attriubte, empty string if it is not a string
+	*/	
 	string GetString(string key)
 	{
 		if (content.Get(key).param1 == L1960_Types.TYPE_STRING)
 			return content.Get(key).param2;
 		return string.Empty;
 	}
+	/*!	
+	Returns a bool value of the corresponding key attribute.
+	\param key name of the Json attribute
+	\return bool value of the attriubte, false if it is not a bool
+	*/	
 	bool GetBool(string key)
 	{
 		if (content.Get(key).param1 == L1960_Types.TYPE_BOOL)
 			return content.Get(key).param2.ToInt() == 1;
 		return false;
 	}
+	/*!	
+	Returns a date value of the corresponding key attribute.
+	\param key name of the Json attribute
+	\return date value of the attriubte, null if it is not a date
+	*/	
 	L1960_Datetime GetDate(string key)
 	{
 		if (content.Get(key).param1 == L1960_Types.TYPE_DATE)
@@ -192,27 +278,63 @@ class L1960_GenericJson
 		return null;
 	}
 	
-	int Insert(string key, int i)
+	/*!	
+	Inserts an int value with the key attribute.
+	\param key Json attribute name
+	\param i Json attribute value
+	\return true if successfull, false otherwise
+	*/	
+	bool Insert(string key, int i)
 	{
 		return content.Insert(key, new Tuple2<ref L1960_Types, string>(L1960_Types.TYPE_INT, i.ToString()));
 	}
-	int Insert(string key, string i)
+	/*!	
+	Inserts a string value with the key attribute.
+	\param key Json attribute name
+	\param i Json attribute value
+	\return true if successfull, false otherwise
+	*/	
+	bool Insert(string key, string i)
 	{
 		return content.Insert(key, new Tuple2<ref L1960_Types, string>(L1960_Types.TYPE_STRING, i));
 	}
-	int Insert(string key, float i)
+	/*!	
+	Inserts a float value with the key attribute.
+	\param key Json attribute name
+	\param i Json attribute value
+	\return true if successfull, false otherwise
+	*/
+	bool Insert(string key, float i)
 	{
 		return content.Insert(key, new Tuple2<ref L1960_Types, string>(L1960_Types.TYPE_FLOAT, i.ToString()));
 	}
-	int Insert(string key, bool i)
+	/*!	
+	Inserts a bool value with the key attribute.
+	\param key Json attribute name
+	\param i Json attribute value
+	\return true if successfull, false otherwise
+	*/
+	bool Insert(string key, bool i)
 	{
 		return content.Insert(key, new Tuple2<ref L1960_Types, string>(L1960_Types.TYPE_BOOL, i.ToString()));
 	}
-	int Insert(string key, L1960_Datetime i)
+	/*!	
+	Inserts a L1960_Datetime value with the key attribute.
+	\param key Json attribute name
+	\param i Json attribute value
+	\return true if successfull, false otherwise
+	*/
+	bool Insert(string key, L1960_Datetime i)
 	{
 		return content.Insert(key, new Tuple2<ref L1960_Types, string>(L1960_Types.TYPE_DATE, i.AsString()));
 	}
 	
+	/*!	
+	Search for an element with the given key.
+	\param key The key of the element to find
+	\param val result is stored to val
+	\return returns True if given key exist.
+	*/
 	bool Find(string key, out string val)
 	{
 		Tuple2<ref L1960_Types, string> ele;	
@@ -227,6 +349,12 @@ class L1960_GenericJson
 			
 		return true;
 	}
+	/*!	
+	Search for an element with the given key.
+	\param key The key of the element to find
+	\param val result is stored to val
+	\return returns True if given key exist.
+	*/
 	bool Find(string key, out int val)
 	{
 		Tuple2<ref L1960_Types, string> ele;	
@@ -241,6 +369,12 @@ class L1960_GenericJson
 			
 		return true;
 	}
+	/*!	
+	Search for an element with the given key.
+	\param key The key of the element to find
+	\param val result is stored to val
+	\return returns True if given key exist.
+	*/
 	bool Find(string key, out float val)
 	{
 		Tuple2<ref L1960_Types, string> ele;	
@@ -255,6 +389,12 @@ class L1960_GenericJson
 			
 		return true;
 	}
+	/*!	
+	Search for an element with the given key.
+	\param key The key of the element to find
+	\param val result is stored to val
+	\return returns True if given key exist.
+	*/
 	bool Find(string key, out bool val)
 	{
 		Tuple2<ref L1960_Types, string> ele;	
@@ -270,6 +410,12 @@ class L1960_GenericJson
 		return true;
 	}
 	
+	/*!	
+	Return the i:th element in the Json object.
+	Note: This operation is O(n) complexity. Use with care!
+	\param index The position of the element in the map
+	\return The string on the i:th position or empty string
+	*/
 	string GetStringElement(int index)
 	{
 		Tuple2<ref L1960_Types, string> ele = content.GetElement(index);
@@ -278,6 +424,12 @@ class L1960_GenericJson
 			return ele.param2;
 		return string.Empty;
 	}
+	/*!	
+	Return the i:th element in the Json object.
+	Note: This operation is O(n) complexity. Use with care!
+	\param index The position of the element in the map
+	\return The int on the i:th position or 0
+	*/
 	int GetIntElement(int index)
 	{
 		Tuple2<ref L1960_Types, string> ele = content.GetElement(index);
@@ -286,6 +438,12 @@ class L1960_GenericJson
 			return ele.param2.ToInt();
 		return 0;
 	}
+	/*!	
+	Return the i:th element in the Json object.
+	Note: This operation is O(n) complexity. Use with care!
+	\param index The position of the element in the map
+	\return The float on the i:th position for 0
+	*/
 	float GetFloatElement(int index)
 	{
 		Tuple2<ref L1960_Types, string> ele = content.GetElement(index);
@@ -294,6 +452,12 @@ class L1960_GenericJson
 			return ele.param2.ToFloat();
 		return 0;
 	}
+	/*!	
+	Return the i:th element in the Json object.
+	Note: This operation is O(n) complexity. Use with care!
+	\param index The position of the element in the map
+	\return The bool on the i:th position or false
+	*/
 	float GetBoolElement(int index)
 	{
 		Tuple2<ref L1960_Types, string> ele = content.GetElement(index);
@@ -302,6 +466,12 @@ class L1960_GenericJson
 			return ele.param2.ToInt() == 1;
 		return false;
 	}
+	/*!	
+	Return the i:th element in the Json object.
+	Note: This operation is O(n) complexity. Use with care!
+	\param index The position of the element in the map
+	\return The L1960_Datetime on the i:th position or null
+	*/
 	L1960_Datetime GetDateElement(int index)
 	{
 		Tuple2<ref L1960_Types, string> ele = content.GetElement(index);
