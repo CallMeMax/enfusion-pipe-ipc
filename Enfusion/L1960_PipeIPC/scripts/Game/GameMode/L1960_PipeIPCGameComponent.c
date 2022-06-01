@@ -35,10 +35,13 @@ class L1960_PipeIPCGameComponent : SCR_BaseGameModeComponent {
 	void test()
 	{
 		
-		L1960_SQLQuery jas = new L1960_SQLQuery(m_IPC.SyncCall("SELECT CURRENT_TIMESTAMP()"));		
+		L1960_SQLQuery jas = new L1960_SQLQuery(m_IPC.SyncCall("SELECT CURRENT_TIMESTAMP() as time"));		
 		
 		if (!jas.IsEmpty())
+		{
 			SCR_HintManagerComponent.ShowCustomHint(jas.AsString(), "Pipe IPC", 12);
+			PrintFormat("The time is %1", jas[0].GetDate("time").Format())
+		}
 		else
 			SCR_HintManagerComponent.ShowCustomHint("Null?!", "Pipe IPC", 12);
 	}
