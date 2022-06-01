@@ -46,6 +46,15 @@ class L1960_PipeIPC {
 		m_sPipeOut = pipeOut;
 	}
 	
+	string getPipeIn()
+	{
+		return m_sPipeIn;
+	}
+	
+	string getPipeOut()
+	{
+		return m_sPipeOut;
+	}
 	string SyncCall(string msg)
 	{		
 		m_FileOut = FileIO.OpenFile(m_sPipeOut, FileMode.OPENW);	
@@ -69,8 +78,10 @@ class L1960_PipeIPC {
 			return NO_CONNECTION_ERROR;
 		} 
 		
-		int i = m_FileIn.ReadFile(m_Buff, m_Buff.Length()); // non blocking call
-		string s = m_Buff.Substring(0, i);
+		//int i = m_FileIn.ReadFile(m_Buff, m_Buff.Length()); // non blocking call
+		//string s = m_Buff.Substring(0, i);
+		string s;
+		int i = m_FileIn.FGets(s);  // non blocking call
 
 		m_FileIn.CloseFile();  // also kills the pipe
 		

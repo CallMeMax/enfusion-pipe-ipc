@@ -82,6 +82,26 @@ class PipeIPCServer(ABC):
 
 class SQLServer(PipeIPCServer):
 
+    def getType(self, type):
+        from mysql.connector import FieldType
+        if type in FieldType.get_timestamp_types():
+            return "DATE"
+        if type in FieldType.get_number_types():
+            if type in [4, 5]:
+                return "FLOAT"
+            else:
+                return "INT"
+        if type in FieldType.get_string_types():
+            return "STRING"
+        return "???"
+
+    def serialize(self, data):
+        from datetime import datetime
+        if isinstance(data, datetime):
+            return str([data.year, data.month, data.day, data.hour, data.minute, data.second])[1:-1]
+        else:
+            return str(data)
+
     def process_request(self, req):
         """
         Query SQL DB
@@ -89,6 +109,7 @@ class SQLServer(PipeIPCServer):
         :return: string response
         """
         import mysql.connector
+        import json
         mydb = mysql.connector.connect(
             host="",
             user="",
@@ -101,10 +122,18 @@ class SQLServer(PipeIPCServer):
 
         myresult = mycursor.fetchall()
 
-        return str(myresult)
+        field_names = [i[0] for i in mycursor.description]
+        field_types = [self.getType(i[1]) for i in mycursor.description]
+        data = [self.serialize(d) for row in myresult for d in row]
+
+        return json.dumps({"data": data, "names": field_names, "types": field_types})
 
 
 if __name__ == '__main__':
-    my_pipe = SQLServer(r"\\.\pipe\ArmaIn", r"\\.\pipe\ArmaOut")
-    my_pipe.run()
-
+    if len(sys.argv) < 2:
+        print("need s as argument")
+    elif sys.argv[1] == "s":
+        my_pipe = SQLServer()
+        my_pipe.run()
+    else:
+        print(f"no can do: {sys.argv[1]}")

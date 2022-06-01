@@ -34,12 +34,11 @@ class L1960_PipeIPCGameComponent : SCR_BaseGameModeComponent {
 	*/
 	void test()
 	{
-		//m_IPC.setPipeIn(m_sPipeIn);
-		//m_IPC.setPipeOut(m_sPipeOut);
-		//string s = m_IPC.SyncCall("SELECT name,uid,items FROM users WHERE uid='76561198058436233'");
-		string s = m_IPC.SyncCall("SELECT CURRENT_TIMESTAMP()");
-		if (s)
-			SCR_HintManagerComponent.ShowCustomHint(s, "Pipe IPC", 12);
+		
+		L1960_SQLQuery jas = new L1960_SQLQuery(m_IPC.SyncCall("SELECT CURRENT_TIMESTAMP()"));		
+		
+		if (!jas.IsEmpty())
+			SCR_HintManagerComponent.ShowCustomHint(jas.AsString(), "Pipe IPC", 12);
 		else
 			SCR_HintManagerComponent.ShowCustomHint("Null?!", "Pipe IPC", 12);
 	}
