@@ -54,11 +54,11 @@ class L1960_PipeIPCGameComponent : SCR_BaseGameModeComponent {
 	Get instance of the IPC manager game component. This can be used to query the DB from any file (similar to the SCR_HintManagerComponent).
 	\return IPC manager
 	*/
-	static L1960_PipeIPC GetInstance()
+	static L1960_PipeIPCGameComponent GetInstance()
 	{
 		BaseGameMode gameMode = GetGame().GetGameMode();
 		if (gameMode)
-			return L1960_PipeIPC.Cast(gameMode.FindComponent(L1960_PipeIPC));
+			return L1960_PipeIPCGameComponent.Cast(gameMode.FindComponent(L1960_PipeIPCGameComponent));
 		else
 			return null;
 	}
