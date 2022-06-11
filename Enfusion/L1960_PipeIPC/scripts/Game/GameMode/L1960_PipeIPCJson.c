@@ -1,5 +1,8 @@
 class L1960_SQLQuery : array<ref L1960_GenericJson>
 {
+	string m_sError;  // error from the DB 
+	string m_sQuery;  // query which was requested
+	
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	//--- Public functions
 	////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -8,7 +11,7 @@ class L1960_SQLQuery : array<ref L1960_GenericJson>
 	Parses the SQL query result into a L1960_PipeIPCJson object.
 	\param result Json object containing 3 string lists: data, names, types. Where names and types must be the same length and data must be a multiple.
 	*/
-	void L1960_SQLQuery(string result)
+	void L1960_SQLQuery(string result = "{\"data\":[], \"types\":[], \"names\":[], \"error\":\" \", \"query\":\" \"}")
 	{
 		L1960_PipeIPCJson jas = new L1960_PipeIPCJson(this);		
 		jas.ExpandFromRAW(result);
@@ -35,7 +38,10 @@ class L1960_PipeIPCJson : JsonApiStruct
 	protected ref array<string> names;  // names of the SQL columns 
 	protected ref array<string> types;  // types of the SQL columns 
 	
-	array<ref L1960_GenericJson> content;  // SQL query parsed as rows of L1960_GenericJson
+	protected string error;  // error from the DB 
+	protected string query;  // query which was requested
+	
+	L1960_SQLQuery content;  // SQL query parsed as rows of L1960_GenericJson
 
 	/*!
 	Called after successful parsing of the Json
@@ -43,8 +49,9 @@ class L1960_PipeIPCJson : JsonApiStruct
 	*/
 	override void OnSuccess( int errorCode )
 	{
-		PrintFormat("Success %1", errorCode);
-
+		content.m_sError = error;
+		content.m_sQuery = query;
+		
 		if (names && types)
 		{
 			for (int i = 0; i < data.Count();)
@@ -87,11 +94,14 @@ class L1960_PipeIPCJson : JsonApiStruct
 	data, names and types are parse automatically from the Json data.
 	\param c the L1960_GenericJson list for the output
 	*/
-	void L1960_PipeIPCJson(array<ref L1960_GenericJson> c)
+	void L1960_PipeIPCJson(L1960_SQLQuery c)
 	{
 		RegV("data");
 		RegV("names");
 		RegV("types");
+		
+		RegV("error");
+		RegV("query");
 		
 		content = c;
 	}	
@@ -122,36 +132,36 @@ class L1960_Datetime : array<int>
 	void L1960_Datetime(string list)
 	{
 		array<string> tmp = {};
-		list.Split(",", tmp, false);
-		foreach (string s : tmp)
-			Insert(s.ToInt());
+		list.Split(" ", tmp, false);
+		
+		array<string> tmp_2 = {};		
+		tmp[0].Split("-", tmp_2, false);
+		array<string> tmp_3 = {};
+		tmp[1].Split(":", tmp_3, false);
+		
+		foreach (string s : tmp_2)
+		{
+			int i = s.ToInt();
+			Insert(i);
+		}
+		
+		foreach (string s : tmp_3)
+		{
+			int j = s.ToInt();
+			Insert(j);
+		}
 	}
-	
-	/*!	
-	Parses the data of this class as string.
-	\return string representation
-	*/
-	string AsString()
-	{
-		string data = "";
-		foreach(int i : this)
-			data = data + i + ", ";
-		if (data.Length() > 0)
-			return data.Substring(0, data.Length() - 2);
-		else
-			return "";
-	}	
 	
 	/*!	
 	Parses the data of this class as a more beautiful string.
 	\return string representation
 	*/
-	string Format()
+	string AsString()
 	{
 		if (Count() == 6)
 			return SCR_FormatHelper.FormatDateTime(Get(0), Get(1), Get(2), Get(3), Get(4), Get(5));
 		else
-			return AsString();
+			return "";
 	}
 	
 	/*!	
@@ -185,10 +195,7 @@ class L1960_GenericJson
 	{
 		string s = "";
 		for (int i = 0; i < content.Count(); i++)
-			if (content.GetElement(i).param1 == L1960_Types.TYPE_DATE)
-				s = s + content.GetKey(i) + ":" + L1960_Datetime(content.GetElement(i).param2).Format() + ", ";
-			else
-				s = s + content.GetKey(i) + ":" + content.GetElement(i).param2 + ", ";
+			s = s + content.GetKey(i) + ":" + content.GetElement(i).param2 + ", ";
 		
 		if (s.Length() > 0)
 			return s.Substring(0, s.Length() - 2);
